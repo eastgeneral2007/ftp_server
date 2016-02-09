@@ -12,7 +12,7 @@ void
 addwrite(struct addrinfo *addr)
 {
 	printf(
-	"flags: %d\n family: %d\n type: %d\n protocol: %d\n addrlen: %d\n ai_addr: %d\n name: %s\n next: %d\n", 
+	"flags: %d\n family: %d\n type: %d\n protocol: %d\n addrlen: %d\n ai_addr: %p\n name: %s\n next: %p\n", 
 	addr->ai_flags ,
 	addr->ai_family ,
 	addr->ai_socktype ,
@@ -49,54 +49,64 @@ comunicate(int socketDescriptor)
 	fclose(channel);
 }	
 
-void
-main(void)
+int
+init_dualstack(struct addrinfo *addr_res)
 {
-	if(-10)
-		printf("%d\n", getpid());
-
-	int socketDescriptor; 
-	struct addrinfo hints;
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	//null other fields	
-	hints.ai_protocol = 0;
-	hints.ai_addrlen =  0;
-	hints.ai_addr = NULL;
-	hints.ai_canonname = NULL;
-	hints.ai_next = NULL;
-	
-	struct addrinfo *addr_res;	
-	getaddrinfo(NULL, "ftp", &hints, &addr_res);
+	int socketDescriptor = -1;
+	struct protoent *tcp_ent = getprotobyname("tcp");
+	if(!tcp_ent)
+		err(1, "unable to find tcp flag" );
 	
 	struct addrinfo *s;
 	for(s = addr_res; s != NULL; s = s->ai_next)
 	{	
-		//prints structures for inet and inet6
 		addwrite(s); 
+		if( s->ai_family == AF_INET6 && s->ai_protocol == tcp_ent->p_proto)
+		{
+			socketDescriptor = socket(s->ai_family, s->ai_socktype, s->ai_protocol);
+			if(socketDescriptor == -1 )
+				err(1, "unable create socket");
 	
-		socketDescriptor = socket(s->ai_family, s->ai_socktype, s->ai_protocol);
-		if(socketDescriptor == -1 )
-			err(1, "unable create socket");
+			int opt = 1, opt1 = 0;
+			if(setsockopt(socketDescriptor, IPPROTO_IPV6, IPV6_V6ONLY, &opt1, sizeof(opt1)) == -1 )
+				err(1, "unable set dual-stack socket" );
 
-		if(bind(socketDescriptor, s->ai_addr, s->ai_addrlen) == -1)
-			err(1, "unable bind socket");
-		else
-			break;
+			if(setsockopt(socketDescriptor, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1 )
+				err(1, "unable set reusable socket" );
 
+			if(bind(socketDescriptor, s->ai_addr, s->ai_addrlen) == -1)
+				err(1, "unable bind socket");
+		}
 	}
-	freeaddrinfo(s);
+	return socketDescriptor;
+}
 
-	int opt = 1;
-	if(setsockopt(socketDescriptor, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1 )
-		err(1, "unable se reusable socket" );
+void
+startServer(void)
+{
+	struct addrinfo hints;
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_family = AF_INET6;
+	hints.ai_socktype = SOCK_STREAM;
 	
-	if(listen(socketDescriptor, SOMAXCONN) == -1)
+	struct addrinfo *addr_res;	
+	if(getaddrinfo(NULL, "ftp", &hints, &addr_res))
+		err(1, "cant get addrinfo" );
+	int socketDescriptor = init_dualstack(addr_res);
+	freeaddrinfo(addr_res);
+
+
+	if(listen(socketDescriptor , SOMAXCONN) == -1)
 		err(1, "unable start listening socket");
 
 	comunicate(socketDescriptor);
-
 	close(socketDescriptor);
+}
 
+int
+main(int argc, char* argv[])
+{
+	startServer();
+	return (0);
 }
