@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
 
 void
@@ -21,6 +22,37 @@ addwrite(struct addrinfo *addr)
 	addr->ai_addr ,
 	addr->ai_canonname ,
 	addr->ai_next );
+}
+
+void
+accept_connections(int socketDescriptor)
+{
+	for(;;)
+	{
+		int chanDesc;
+		if( (chanDesc = accept(socketDescriptor, NULL, 0)) == -1 )
+			err(1, "unable accept connection");
+	
+		char abs_path[PATH_MAX], *file = "./control_connection.out";
+		realpath(file, abs_path);
+		pid_t pid = fork();	
+		switch(pid)
+		{
+			case -1:
+				err(1, "cannot fork");
+				break;
+			case 0: 
+				close(0);
+				close(1);	
+				dup(chanDesc);
+				dup(chanDesc); close(chanDesc);
+				execl(abs_path, file, (char*)NULL);
+				break;
+			default:
+				close(chanDesc);				
+				break;
+		}
+	}
 }
 
 void
@@ -100,7 +132,7 @@ startServer(void)
 	if(listen(socketDescriptor , SOMAXCONN) == -1)
 		err(1, "unable start listening socket");
 
-	comunicate(socketDescriptor);
+	accept_connections(socketDescriptor);
 	close(socketDescriptor);
 }
 
