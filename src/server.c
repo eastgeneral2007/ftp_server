@@ -27,14 +27,17 @@ addwrite(struct addrinfo *addr)
 void
 accept_connections(int socketDescriptor)
 {
+	char  *file = "./control_connection.out", *cur_path = "/proc/self/exe";
+	char abs_path[PATH_MAX];
+	realpath(cur_path, abs_path);
+	strcpy(abs_path + strlen(abs_path) -  strlen("server.out"), file + 2);
+
 	for(;;)
 	{
 		int chanDesc;
 		if( (chanDesc = accept(socketDescriptor, NULL, 0)) == -1 )
 			err(1, "unable accept connection");
 	
-		char abs_path[PATH_MAX], *file = "./control_connection.out";
-		realpath(file, abs_path);
 		pid_t pid = fork();	
 		switch(pid)
 		{
