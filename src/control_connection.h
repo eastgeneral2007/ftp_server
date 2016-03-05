@@ -1,4 +1,3 @@
-
 #ifndef control_connection_h
 #define control_connection_h
 
@@ -6,6 +5,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+#include "trim.h"
+
+extern char *user;
 
 void 
 send_proto(int code, char *message);

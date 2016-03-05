@@ -1,17 +1,29 @@
 #include "login_cmd.h"
 
+char *def_usr = "anonymous";
+char *user = NULL;
+
 int
 exec_user_cmd(char* params)
 {
-	if(strcmp(params, "anonymous"))
+	user = NULL;
+
+	if(!strcmp(params, def_usr))
 	{
+		user = def_usr;
 		send_proto(230, "User logged in proceed");	
-		return 1;
 	}
 	else 
 	{
-		send_proto(530, "Invalid parameter");
-		return 0;
+		send_proto(530, "Invalid parameter: anonymous supported only!");
 	}
+	return 1;
 }
 
+int
+exec_quit_cmd(char *params)
+{
+	user = NULL;
+	send_proto(221, "Service closing control connection");
+	return 0;
+}
