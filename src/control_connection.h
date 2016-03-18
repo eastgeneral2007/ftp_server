@@ -11,15 +11,22 @@
 
 #include "helper_fnc.h"
 
-extern char *user;
 extern char *loc_adr;
 extern char *cur_file;
 extern int ipv4;
-extern struct trans_con{
+
+struct trans_con{
 	int trans_in, trans_out;
 	unsigned short port;
 	pid_t pid;
-} *trans_con;
+};
+
+extern struct session{
+	char *user;
+	char *cur_path;
+	char *root_path;
+	struct trans_con *trans_con;
+} *session;
 
 
 void 
@@ -31,4 +38,11 @@ process_cmd();
 int
 process_get_verify_cmd(char* expec_cmd);
 
+void
+create_session(char *user);
+
+void
+free_session(void);
+
 #endif
+

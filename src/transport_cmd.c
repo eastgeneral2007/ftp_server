@@ -1,7 +1,5 @@
 #include "transport_cmd.h"
 
-struct trans_con *trans_con = NULL;
-
 int
 pasv_error(void)
 {
@@ -21,7 +19,7 @@ reply_pasv(void)
 	char message[255]; 
 	if(ipv4)
 	{
-		unsigned short x = trans_con->port;
+		unsigned short x = session->trans_con->port;
 		snprintf(message, 255, "Entering pasive mode. %d (%s,%d,%d)", x, ip_f, *((unsigned char*)&x + 1), *((unsigned char*)&x));
 		send_proto(227, message);
 	}
@@ -37,14 +35,14 @@ reply_pasv(void)
 void	
 free_trans(void)
 {
-	if(trans_con)
+	if(session->trans_con)
 	{
-		kill(trans_con->pid, 9);
-		close(trans_con->trans_in);
-		close(trans_con->trans_out);
-		free(trans_con);
+		kill(session->trans_con->pid, 9);
+		close(session->trans_con->trans_in);
+		close(session->trans_con->trans_out);
+		free(session->trans_con);
 	}
-	trans_con = NULL;
+	session->trans_con = NULL;
 }
 
 int
@@ -55,8 +53,8 @@ exec_pasv_cmd(char *params)
 	int parent[2], trans_in[2], trans_out[2];
 	pipe(parent); pipe(trans_in); pipe(trans_out);
 
-	trans_con = malloc(sizeof(struct trans_con));
-	if((trans_con->pid = fork()) == 0)
+	session->trans_con = malloc(sizeof(struct trans_con));
+	if((session->trans_con->pid = fork()) == 0)
 	{
 		close(0);
 		dup(trans_in[0]);
@@ -73,18 +71,18 @@ exec_pasv_cmd(char *params)
 		execl(get_abs_path(file, cur_file), file, loc_adr, d, (char *)NULL);
 	}
 	
-	if(trans_con->pid == -1)
+	if(session->trans_con->pid == -1)
 		return pasv_error();
 
 	close(parent[1]);	
 	close(trans_in[0]);
 	close(trans_out[1]);
 	
-	trans_con->trans_in = trans_in[1];
-	trans_con->trans_out = trans_out[0];
+	session->trans_con->trans_in = trans_in[1];
+	session->trans_con->trans_out = trans_out[0];
 	
-	if(!read(parent[0], &trans_con->port, sizeof(trans_con->port)))
+	if(!read(parent[0], &session->trans_con->port, sizeof(session->trans_con->port)))
 		return pasv_error();
-	//dprintf(2, "port-> %d\n", trans_con->port);
+	//dprintf(2, "port-> %d\n", session->trans_con->port);
 	return reply_pasv(); 
 }

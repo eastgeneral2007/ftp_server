@@ -1,16 +1,15 @@
 #include "login_cmd.h"
 
 char *def_usr = "anonymous";
-char *user = NULL;
 
 int
 exec_user_cmd(char* params)
 {
-	user = NULL;
+	free_session();	
 
 	if(!strcmp(params, def_usr))
 	{
-		user = def_usr;
+		create_session(def_usr);
 		send_proto(230, "User logged in proceed");	
 	}
 	else 
@@ -23,7 +22,7 @@ exec_user_cmd(char* params)
 int
 exec_quit_cmd(char *params)
 {
-	user = NULL;
+	free_session();	
 	send_proto(221, "Service closing control connection");
 	return 0;
 }

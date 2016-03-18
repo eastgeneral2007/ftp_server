@@ -12,10 +12,47 @@ exec_list_cmd(char *params);
 int
 exec_pasv_cmd(char *params);
 
+int
+exec_cwd_cmd(char *params);
+
+int
+exec_pwd_cmd(char *params);
+
+
+void
+free_trans(void);
 
 char *loc_adr;
 char *cur_file;
 int ipv4;
+struct session *session;
+
+void
+create_session(char *user)
+{
+	session = malloc(sizeof(struct session));
+	session->user = malloc(strlen(user) + 1);
+	strcpy(session->user, user);   
+	session->cur_path = malloc(1);
+	*session->cur_path = '\0';
+	session->root_path = get_abs_path("", cur_file);
+	session->trans_con = NULL;
+}
+
+void
+free_session(void)
+{
+	if(session)
+	{
+		if(session->trans_con)
+			free_trans();
+		free(session->root_path);
+		free(session->cur_path);
+		free(session->user);
+		free(session);
+		session = NULL;
+	}
+}
 
 void 
 send_proto(int code, char *message)
@@ -27,7 +64,7 @@ send_proto(int code, char *message)
 int
 check_user(int(*cmd)(char*), char *params)
 {
-	if(user == NULL)
+	if(session == NULL)
 	{
 		send_proto(530, "Please log in.");
 		return 1;
@@ -53,6 +90,14 @@ select_cmd(char *token, char *params)
 	else if(!strcmp(token, "LIST"))
 	{
 		return check_user(exec_list_cmd, params);
+	}
+	else if(!strcmp(token, "PWD"))
+	{
+		return check_user(exec_pwd_cmd, params);
+	}
+	else if(!strcmp(token, "CWD"))
+	{
+		return check_user(exec_cwd_cmd, params);
 	}
 	else
 	{
@@ -106,8 +151,8 @@ main(int argc, char *argv[])
 	while(success)
 		success = process_cmd();
 
-	if(trans_con)
-		kill(trans_con->pid, 9);
+	if(session) 
+		free_session();
 
 	return 0;
 }

@@ -25,4 +25,15 @@ str_lower(char *s);
 char* 
 get_abs_path(char *file, char *cur_file);
 
+char *
+remove_relatives(char *path);
+
+int
+is_absolute(char *path);
+
+char *
+remove_slashes(char *path);
+
+char *
+get_full_path(char *root, char  **cur_path, char *params);
 #endif
