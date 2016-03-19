@@ -45,6 +45,6 @@ void
 free_session(void);
 
 int
-params_empty(char *params);
+params_empty(char *params, int is_empty_valid);
 #endif
 

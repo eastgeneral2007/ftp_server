@@ -162,7 +162,7 @@ exec_mlsd_cmd(char *params)
 int
 exec_pwd_cmd(char *params)
 {
-	if(!params_empty(params))
+	if(!params_empty(params, 1))
 		return 1;
 
 	char str[] = "\"%s\" path.";
@@ -200,7 +200,7 @@ exec_cwd_cmd(char *params)
 int
 exec_cdup_cmd(char *params)
 {
-	if(!params_empty(params))
+	if(!params_empty(params, 1))
 		return 1;
 
 	exec_cwd_cmd("..");

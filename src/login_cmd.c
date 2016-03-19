@@ -22,7 +22,7 @@ exec_user_cmd(char* params)
 int
 exec_quit_cmd(char *params)
 {
-	if(!params_empty(params))
+	if(!params_empty(params, 1))
 		return 1;
 
 	free_session();	
