@@ -26,6 +26,7 @@ extern struct session{
 	char *cur_path;
 	char *root_path;
 	struct trans_con *trans_con;
+	char *next_seq_cmd;
 } *session;
 
 
@@ -46,5 +47,7 @@ free_session(void);
 
 int
 params_empty(char *params, int is_empty_valid);
-#endif
 
+void
+send_path_proto(char * rel_path);
+#endif

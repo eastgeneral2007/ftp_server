@@ -240,3 +240,5 @@ get_full_path(char *root, char  **cur_path, char *params)
 	strcat(res, *cur_path);
 	return res;
 }
+
+

@@ -8,16 +8,16 @@ exec_mkd_cmd(char *params)
 
 	char *cur = session->cur_path;
 	char *full_path = get_full_path(session->root_path, &cur, params);
-	free(cur);
 
 	if( -1 != mkdir(full_path, 0770))
 	{
-		send_proto(257, "Requested file action complete");
+		send_path_proto(cur);
 	}
 	else
 	{
 		send_proto(550, "Requested action not taken.");
 	}
+	free(cur);
 
 	return 1;
 }
@@ -30,7 +30,6 @@ exec_rmd_cmd(char *params)
 
 	char *cur = session->cur_path;
 	char *full_path = get_full_path(session->root_path, &cur, params);
-	free(cur);
 
 	if( -1 != rmdir(full_path))
 	{
@@ -40,6 +39,7 @@ exec_rmd_cmd(char *params)
 	{
 		send_proto(550, "Requested action not taken.");
 	}
+	free(cur);
 
 	return 1;
 

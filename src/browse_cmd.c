@@ -164,13 +164,9 @@ exec_pwd_cmd(char *params)
 {
 	if(!params_empty(params, 1))
 		return 1;
-
-	char str[] = "\"%s\" path.";
-	char *txt = malloc(strlen(str) + strlen(session->cur_path) + 1);
-	sprintf(txt, str, session->cur_path);
 	
-	send_proto(257, txt);
-	free(txt);
+	send_path_proto(session->cur_path);
+
 	return 1;
 }
 

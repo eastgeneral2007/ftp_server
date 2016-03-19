@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 char *
 rtrim(char *s);
@@ -36,4 +37,5 @@ remove_slashes(char *path);
 
 char *
 get_full_path(char *root, char  **cur_path, char *params);
+
 #endif

@@ -30,6 +30,15 @@ exec_mkd_cmd(char *params);
 int
 exec_rmd_cmd(char *params);
 
+int
+exec_rnfr_cmd(char *params);
+
+int
+exec_rnto_cmd(char *params);
+
+int
+exec_dele_cmd(char *params);
+
 void
 free_trans(void);
 
@@ -48,6 +57,7 @@ create_session(char *user)
 	*session->cur_path = '\0';
 	session->root_path = get_abs_path("", cur_file);
 	session->trans_con = NULL;
+	session->next_seq_cmd = NULL;
 }
 
 void
@@ -84,13 +94,20 @@ params_empty(char *params, int empty_is_valid)
 }
 
 int
-check_user(int(*cmd)(char*), char *params)
+check_user(int(*cmd)(char*), char *token, char *params)
 {
 	if(session == NULL)
 	{
 		send_proto(530, "Please log in.");
 		return 1;
 	}
+
+	if(session->next_seq_cmd != NULL && strcmp(session->next_seq_cmd, token))
+	{
+		send_proto(501, "Bad sequence of commands.");
+		return 1;
+	}
+
 	return cmd(params);
 }
 
@@ -107,35 +124,47 @@ select_cmd(char *token, char *params)
 	}
 	else if(!strcmp(token, "PASV"))
 	{
-		return check_user(exec_pasv_cmd, params);
+		return check_user(exec_pasv_cmd, token, params);
 	}
 	else if(!strcmp(token, "LIST"))
 	{
-		return check_user(exec_list_cmd, params);
+		return check_user(exec_list_cmd, token, params);
 	}
 	else if(!strcmp(token, "MLSD"))
 	{
-		return check_user(exec_mlsd_cmd, params);
+		return check_user(exec_mlsd_cmd, token, params);
 	}
 	else if(!strcmp(token, "PWD"))
 	{
-		return check_user(exec_pwd_cmd, params);
+		return check_user(exec_pwd_cmd, token, params);
 	}
 	else if(!strcmp(token, "CWD"))
 	{
-		return check_user(exec_cwd_cmd, params);
+		return check_user(exec_cwd_cmd, token, params);
 	}
 	else if(!strcmp(token, "CDUP"))
 	{
-		return check_user(exec_cdup_cmd, params);
+		return check_user(exec_cdup_cmd, token, params);
 	}
 	else if(!strcmp(token, "MKD"))
 	{
-		return check_user(exec_mkd_cmd, params);
+		return check_user(exec_mkd_cmd, token, params);
 	}
 	else if(!strcmp(token, "RMD"))
 	{
-		return check_user(exec_rmd_cmd, params);
+		return check_user(exec_rmd_cmd, token, params);
+	}
+	else if(!strcmp(token, "RNFR"))
+	{
+		return check_user(exec_rnfr_cmd, token, params);
+	}
+	else if(!strcmp(token, "RNTO"))
+	{
+		return check_user(exec_rnto_cmd, token, params);
+	}
+	else if(!strcmp(token, "DELE"))
+	{
+		return check_user(exec_dele_cmd, token, params);
 	}
 	else
 	{
@@ -166,6 +195,17 @@ process_verify_cmd(char* expec_cmd)
 	return res;
 }
 
+void
+send_path_proto(char *rel_path)
+{
+	char str[] = "\"%s\" created.";
+	char *txt = malloc(strlen(str) + strlen(rel_path) + 1);
+	sprintf(txt, str, rel_path);
+	
+	send_proto(257, txt);
+	free(txt);
+}
+
 int
 process_cmd()
 {
@@ -194,7 +234,5 @@ main(int argc, char *argv[])
 
 	return 0;
 }
-
-
 
 
