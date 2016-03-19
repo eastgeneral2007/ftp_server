@@ -10,6 +10,9 @@ int
 exec_list_cmd(char *params);
 
 int
+exec_mlsd_cmd(char *params);
+
+int
 exec_pasv_cmd(char *params);
 
 int
@@ -103,6 +106,10 @@ select_cmd(char *token, char *params)
 	else if(!strcmp(token, "LIST"))
 	{
 		return check_user(exec_list_cmd, params);
+	}
+	else if(!strcmp(token, "MLSD"))
+	{
+		return check_user(exec_mlsd_cmd, params);
 	}
 	else if(!strcmp(token, "PWD"))
 	{
