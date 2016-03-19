@@ -44,5 +44,7 @@ create_session(char *user);
 void
 free_session(void);
 
+int
+params_empty(char *params);
 #endif
 

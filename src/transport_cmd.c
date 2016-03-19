@@ -48,6 +48,9 @@ free_trans(void)
 int
 exec_pasv_cmd(char *params)
 {	
+	if(!params_empty(params))
+		return 1;
+
 	free_trans();	
 
 	int parent[2], trans_in[2], trans_out[2];

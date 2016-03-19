@@ -18,6 +18,8 @@ exec_cwd_cmd(char *params);
 int
 exec_pwd_cmd(char *params);
 
+int
+exec_cdup_cmd(char *params);
 
 void
 free_trans(void);
@@ -62,6 +64,17 @@ send_proto(int code, char *message)
 }
 
 int
+params_empty(char *params)
+{
+	int res = !strcmp(trim(params), "");
+	if(!res)
+	{
+		send_proto(555, "Invalid parameters" ); //TODO user correct code !!!!
+	}
+	return res;
+}
+
+int
 check_user(int(*cmd)(char*), char *params)
 {
 	if(session == NULL)
@@ -98,6 +111,10 @@ select_cmd(char *token, char *params)
 	else if(!strcmp(token, "CWD"))
 	{
 		return check_user(exec_cwd_cmd, params);
+	}
+	else if(!strcmp(token, "CDUP"))
+	{
+		return check_user(exec_cdup_cmd, params);
 	}
 	else
 	{

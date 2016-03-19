@@ -4,6 +4,18 @@ char * cur_path;
 char * root_path;
 
 int
+verifi_ex_dir(char *full_abs_path)
+{
+	printf("%s\n", full_abs_path);	
+
+	struct stat info;
+	if(-1 == stat(full_abs_path, &info))
+		return 0;
+	
+	return S_ISDIR(info.st_mode);
+}
+
+int
 exec_list_cmd(char *params)
 {
 	if(session->trans_con == NULL)
@@ -12,17 +24,27 @@ exec_list_cmd(char *params)
 		return 1;
 	}
 
+	char *c_path = session->cur_path;
+	char *ls_param = get_full_path(session->root_path,  &c_path, params);
+	free(c_path);
+
+	if(!verifi_ex_dir(ls_param))
+	{
+		free(ls_param);
+		send_proto(550, "Requested action not taken.");
+		return 1;
+	}
+
 	pid_t son;
 	if((son = fork()) == 0)//producent
 	{	
 		close(1); 
 		dup(session->trans_con->trans_in); 
-		//dprintf(2, "echo output to %d\n", trans_con->trans_in);
-		execl("/bin/ls", "ls", params, NULL);
-		//execl("/bin/echo", "echo", params, NULL);
+		execl("/bin/ls", "ls", "-la", ls_param, NULL);
 		//TODO error outputs of ls
 	}
 	close(session->trans_con->trans_in);
+	free(ls_param);
 	
 	int status_prod = -1, status_trans = -1;
 	pid_t x = waitpid(son, &status_prod, WCONTINUED);
@@ -47,6 +69,9 @@ exec_mlsd_cmd(char *params)
 int
 exec_pwd_cmd(char *params)
 {
+	if(!params_empty(params))
+		return 1;
+
 	char str[] = "\"%s\" path.";
 	char *txt = malloc(strlen(str) + strlen(session->cur_path) + 1);
 	sprintf(txt, str, session->cur_path);
@@ -56,19 +81,7 @@ exec_pwd_cmd(char *params)
 	return 1;
 }
 
-int
-verifi_ex_dir(char *full_abs_path)
-{
-	if(!full_abs_path)
-		return 0;
-	printf("%s\n", full_abs_path);	
 
-	struct stat info;
-	if(-1 == stat(full_abs_path, &info))
-		return 0;
-	
-	return S_ISDIR(info.st_mode);
-}
 
 int
 exec_cwd_cmd(char *params)
@@ -83,8 +96,20 @@ exec_cwd_cmd(char *params)
 	}
 	else
 	{
+		free(cur);
 		send_proto(550, "Requested action not taken.");
 	}
+	free(full_abs_path);
 
+	return 1;
+}
+
+int
+exec_cdup_cmd(char *params)
+{
+	if(!params_empty(params))
+		return 1;
+
+	exec_cwd_cmd("..");
 	return 1;
 }

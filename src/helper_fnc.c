@@ -88,7 +88,7 @@ get_abs_path(char *file, char *cur_file)
 int
 is_absolute(char *path)
 {
-	return strlen(path) > 0 && *path == '/';	
+	return strlen(path) > 0 && *trim(path) == '/';
 }
 
 int
@@ -132,7 +132,7 @@ remove_slashes(char *path)
 	return path;
 }
 
-//make path from dir_list, allocat burffer
+//make path from dir_list, allocate burffer
 char *
 dir_lst_to_path(char **dir_list)
 {
@@ -155,7 +155,8 @@ dir_lst_to_path(char **dir_list)
 	return res;
 }
 
-//Expect normalized(no multiple slashes) trimmed path, allocat buffer for result
+//Expect normalized(no multiple slashes) trimmed(white spaces, slashes) path, allocat buffer for result
+//returns path without relatives or null, if relatives point to "unknown location"
 char *
 remove_relatives(char *path)
 {
@@ -200,18 +201,21 @@ remove_relatives(char *path)
 	return res;
 }
 
+//params is string representing path, either absolute or relative in respect to cur_path and root_path
+//remove relatives from params and returns path concatenated of root cur_path params, buffer is allocated.
+//to cur_path store new current path relative to root, buffer is allocated
 char *
 get_full_path(char *root, char  **cur_path, char *params)
 {
 	char *c_path;
 	if(is_absolute(params))
 	{
-		c_path = malloc(strlen(params));
+		c_path = malloc(strlen(params) + 1);
 		strcpy(c_path, params);
 	}
 	else
 	{
-		c_path = malloc(strlen(*cur_path) + 1 + strlen(params));
+		c_path = malloc(strlen(*cur_path) + 1 + strlen(params) + 1);
 		strcpy(c_path, *cur_path);
 		strcat(c_path, "/");
 		strcat(c_path, params);
@@ -219,17 +223,20 @@ get_full_path(char *root, char  **cur_path, char *params)
 	
 	char *normalized_path = remove_relatives(remove_slashes(c_path));
 	free(c_path);
-	*cur_path = normalized_path;
 
 	if(normalized_path)
 	{
-		char *res = malloc(strlen(root) + strlen(normalized_path) + 1);
-		strcpy(res, root);
-		strcat(res, normalized_path);
-		return res;
+		*cur_path = normalized_path;
 	}
 	else
 	{
-		return NULL;
+		char *empty = malloc(1);
+		*empty = '\0';
+		*cur_path = empty; 
 	}
+
+	char *res = malloc(strlen(root) + strlen(*cur_path) + 1);
+	strcpy(res, root);
+	strcat(res, *cur_path);
+	return res;
 }
