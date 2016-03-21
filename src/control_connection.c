@@ -1,43 +1,5 @@
 #include "control_connection.h"
-
-int
-exec_user_cmd(char *params);
-
-int
-exec_quit_cmd(char *params);
-
-int
-exec_list_cmd(char *params);
-
-int
-exec_mlsd_cmd(char *params);
-
-int
-exec_pasv_cmd(char *params);
-
-int
-exec_cwd_cmd(char *params);
-
-int
-exec_pwd_cmd(char *params);
-
-int
-exec_cdup_cmd(char *params);
-
-int
-exec_mkd_cmd(char *params);
-
-int
-exec_rmd_cmd(char *params);
-
-int
-exec_rnfr_cmd(char *params);
-
-int
-exec_rnto_cmd(char *params);
-
-int
-exec_dele_cmd(char *params);
+#include "commands.h"
 
 void
 free_trans(void);
@@ -126,6 +88,10 @@ select_cmd(char *token, char *params)
 	{
 		return check_user(exec_pasv_cmd, token, params);
 	}
+	else if(!strcmp(token, "EPSV"))
+	{
+		return check_user(exec_epsv_cmd, token, params);
+	}
 	else if(!strcmp(token, "LIST"))
 	{
 		return check_user(exec_list_cmd, token, params);
@@ -165,6 +131,14 @@ select_cmd(char *token, char *params)
 	else if(!strcmp(token, "DELE"))
 	{
 		return check_user(exec_dele_cmd, token, params);
+	}
+	else if(!strcmp(token, "STOR"))
+	{
+		return check_user(exec_stor_cmd, token, params);
+	}
+	else if(!strcmp(token, "RETR"))
+	{
+		return check_user(exec_retr_cmd, token, params);
 	}
 	else
 	{

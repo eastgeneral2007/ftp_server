@@ -13,6 +13,7 @@ exec_rnfr_cmd(char *params)
 	{
 		rnfrom = full_path;	
 		send_proto(350, "Requested file action pending further informations.");
+		session->next_seq_cmd = "RNTO";
 	}
 	else
 	{
@@ -31,6 +32,8 @@ exec_rnto_cmd(char *params)
 		send_proto(501, "Bad sequence of command.");
 		return 1;
 	}
+
+	session->next_seq_cmd = NULL;
 
 	if(params_empty(params, 0))
 		return 1;

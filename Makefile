@@ -14,7 +14,7 @@ all: $(BIN)server.out $(BIN)control_connection.out
 $(BIN)server.out: $(BIN)server.o $(BIN)helper_fnc.o 
 	$(CC)  -o $@ $^ $(OPTS)
 
-$(BIN)control_connection.out: $(BIN)control_connection.o $(BIN)login_cmd.o $(BIN)helper_fnc.o $(BIN)browse_cmd.o $(BIN)transport_cmd.o $(BIN)dir_cmd.o $(BIN)file_cmd.o
+$(BIN)control_connection.out: $(BIN)control_connection.o $(BIN)login_cmd.o $(BIN)helper_fnc.o $(BIN)browse_cmd.o $(BIN)transport_cmd.o $(BIN)dir_cmd.o $(BIN)file_cmd.o $(BIN)transport_param_cmd.o
 	$(CC)  -o $@ $^ $(OPTS)
 
 $(BIN)control_connection.o: $(SRC)control_connection.c $(SRC)control_connection.h
@@ -30,6 +30,9 @@ $(BIN)helper_fnc.o: $(SRC)helper_fnc.c $(SRC)helper_fnc.h
 	$(CC)  -c -o $@ $< $(OPTS)
 
 $(BIN)transport_cmd.o: $(SRC)transport_cmd.c $(SRC)transport_cmd.h
+	$(CC)  -c -o $@ $< $(OPTS)
+
+$(BIN)transport_param_cmd.o: $(SRC)transport_param_cmd.c $(SRC)transport_param_cmd.h
 	$(CC)  -c -o $@ $< $(OPTS)
 
 $(BIN)browse_cmd.o: $(SRC)browse_cmd.c $(SRC)browse_cmd.h

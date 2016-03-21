@@ -1,91 +1,91 @@
 #include "transport_cmd.h"
 
 int
-pasv_error(void)
-{
-	send_proto(421, "Service not avalible, error internal error ocured");
-	return 1;
-}
-
-int
-reply_pasv(void)
-{ 
-	char *ip4 = strrchr(loc_adr, ':') + 1;
-	char ip_f[strlen(ip4) + 1];
-	char *s = strcpy(ip_f, ip4);
-	while( 0 != (s = strchr(s, '.')))
-		*s = ',';		
-
-	char message[255]; 
-	if(ipv4)
+exec_stor_cmd(char *params)
+{	
+	if(session->trans_con == NULL)
 	{
-		unsigned short x = session->trans_con->port;
-		snprintf(message, 255, "Entering pasive mode. %d (%s,%d,%d)", x, ip_f, *((unsigned char*)&x + 1), *((unsigned char*)&x));
-		send_proto(227, message);
+		send_proto(425, "Cant open data connection. User pasv command first."); 
+		return 1;
+	}
+	
+	char *cur = session->cur_path;	
+	char *full_path = get_full_path(session->root_path, &cur, params);
+	struct stat f_info;
+	int stat_r = stat(full_path, &f_info);
+	int f_desc;
+
+	if(strlen(cur) > 0 /*not root dir */ && 
+		((stat_r == -1 && errno == ENOENT ) || ( stat_r == 0 && S_ISREG(f_info.st_mode))) &&
+		(-1 != (f_desc = open(full_path, O_WRONLY | O_CREAT | O_TRUNC, 0770))))
+	{
+		send_proto(150, "File status okay, about to open data connection");
+
+		close(session->trans_con->trans_in);
+		char* buff[1024];
+		int read_len;
+		while((read_len = read(session->trans_con->trans_out, buff, 1024)) > 0 )
+			write(f_desc, buff, read_len); //TODO error check
+
+		close(session->trans_con->trans_out);
+
+		pid_t status_trans;
+		pid_t y = waitpid(session->trans_con->pid, &status_trans, WCONTINUED);
+		if( y == -1 || WEXITSTATUS(status_trans)) 
+			send_proto(426, "Connection closed transfer aborted");
+		else
+			send_proto(226, "Closing data connection. Transfer complete");
+
+		free_trans();
 	}
 	else
-	{ 
-		//TODO set message
-		send_proto(229, message); 
+	{
+		send_proto(550, "Requested action not taken.");
 	}
-	return 1;
+
+	free(cur);
+	return 1;	
 }
-	
-	
-void	
-free_trans(void)
+
+int exec_retr_cmd(char *params)
 {
-	if(session->trans_con)
+	if(session->trans_con == NULL)
 	{
-		kill(session->trans_con->pid, 9);
-		close(session->trans_con->trans_in);
-		close(session->trans_con->trans_out);
-		free(session->trans_con);
-	}
-	session->trans_con = NULL;
-}
-
-int
-exec_pasv_cmd(char *params)
-{	
-	if(!params_empty(params, 1))
+		send_proto(425, "Cant open data connection. User pasv command first."); 
 		return 1;
-
-	free_trans();	
-
-	int parent[2], trans_in[2], trans_out[2];
-	pipe(parent); pipe(trans_in); pipe(trans_out);
-
-	session->trans_con = malloc(sizeof(struct trans_con));
-	if((session->trans_con->pid = fork()) == 0)
-	{
-		close(0);
-		dup(trans_in[0]);
-		close(trans_in[1]);
-
-		close(1);
-		dup(trans_out[1]);
-		close(trans_out[0]);
-
-		char *file = "transport.out"; 
-		char d[10];
-		snprintf(d, 10, "%d", parent[1]);
-		close(parent[0]);
-		execl(get_abs_path(file, cur_file), file, loc_adr, d, (char *)NULL);
 	}
 	
-	if(session->trans_con->pid == -1)
-		return pasv_error();
+	char *cur = session->cur_path;	
+	char *full_path = get_full_path(session->root_path, &cur, params);
+	struct stat f_info;
+	int stat_r = stat(full_path, &f_info);
+	int f_desc;
 
-	close(parent[1]);	
-	close(trans_in[0]);
-	close(trans_out[1]);
-	
-	session->trans_con->trans_in = trans_in[1];
-	session->trans_con->trans_out = trans_out[0];
-	
-	if(!read(parent[0], &session->trans_con->port, sizeof(session->trans_con->port)))
-		return pasv_error();
-	//dprintf(2, "port-> %d\n", session->trans_con->port);
-	return reply_pasv(); 
+	if( stat_r == 0 && S_ISREG(f_info.st_mode) && -1 != (f_desc = open(full_path, O_RDONLY)))
+	{
+		send_proto(150, "File status okay, about to open data connection");
+
+		char* buff[1024];
+		int read_len;
+		while((read_len = read(f_desc, buff, 1024)) > 0 )
+			write(session->trans_con->trans_in, buff, read_len); //TODO error check
+
+		close(session->trans_con->trans_in);
+
+		pid_t status_trans;
+		pid_t y = waitpid(session->trans_con->pid, &status_trans, WCONTINUED);
+		if( y == -1 || WEXITSTATUS(status_trans)) 
+			send_proto(426, "Connection closed transfer aborted");
+		else
+			send_proto(226, "Closing data connection. Transfer complete");
+
+		free_trans();
+	}
+	else
+	{
+		send_proto(550, "Requested action not taken.");
+	}
+
+	free(cur);
+	return 1;	
 }
