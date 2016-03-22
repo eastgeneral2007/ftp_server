@@ -6,7 +6,7 @@ char * root_path;
 int
 verifi_ex_dir(char *full_abs_path)
 {
-	printf("%s\n", full_abs_path);	
+	//printf("%s\n", full_abs_path);	
 
 	struct stat info;
 	if(-1 == stat(full_abs_path, &info))
@@ -22,6 +22,10 @@ exec_list_cmd(char *params)
 	{
 		send_proto(425, "Cant open data connection. User pasv command first."); 
 		return 1;
+	}
+	else
+	{
+		send_proto(150, "File status ok, about to open data connection");
 	}
 
 	char *c_path = session->cur_path;
@@ -130,6 +134,10 @@ exec_mlsd_cmd(char *params)
 		send_proto(425, "Cant open data connection. User pasv command first."); 
 		return 1;
 	}
+	else
+	{
+		send_proto(150, "File status ok, about to open data connection");
+	}
 
 	char *c_path = session->cur_path;
 	char *dir_path = get_full_path(session->root_path,  &c_path, params);
@@ -181,7 +189,7 @@ exec_cwd_cmd(char *params)
 	{
 		free(session->cur_path);
 		session->cur_path = cur;
-		send_proto(112, "Requested file action completed. OK");
+		send_proto(250, "Requested file action completed. OK");
 	}
 	else
 	{
@@ -199,6 +207,8 @@ exec_cdup_cmd(char *params)
 	if(!params_empty(params, 1))
 		return 1;
 
-	exec_cwd_cmd("..");
+	char up[] = "..";
+
+	exec_cwd_cmd(up);
 	return 1;
 }

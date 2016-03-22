@@ -102,7 +102,7 @@ char *
 remove_slashes(char *path)
 {
 	char *r_path = trim(trim_char(path, isslash));
-	char *res = malloc(strlen(r_path) + 1);
+	char *res = malloc(strlen(path) + 1);
 	char *p = r_path;
 	char *d = res; 
 	int prev_slash = 0;
@@ -147,11 +147,12 @@ dir_lst_to_path(char **dir_list)
 	while(*i != (char*)NULL)
 	{
 		strcat(res, *i);
-		strcat(res, "/");	
+		if(*(i+1) != (char*)NULL)
+			strcat(res, "/");	
 		i++;
 	}
 
-	*(res + strlen(res) - 1) = '\0'; //remove last trailing slash
+	//*(res + strlen(res) - 1) = '\0'; //remove last trailing slash
 	return res;
 }
 

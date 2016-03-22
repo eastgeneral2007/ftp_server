@@ -1,7 +1,7 @@
 # ftp_server
 ##Specification:
 #####done - anonymous login only
-#####done -ipv4/ipv6 dual stack
+#####done - ipv4/ipv6 dual stack
 #####done - login/logout by anonymous - USER, PASS, QUIT
 #####done - pasive mode communication only - PASV, EPSV
 #####done - deleteing server files - DELE

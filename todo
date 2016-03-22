@@ -1,0 +1,4 @@
+do not run control connection under root
+transport connection timeout
+root directory change
+

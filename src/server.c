@@ -63,10 +63,10 @@ comunicate(int socketDescriptor)
 	int input_readed = 0;
 	char* buff[1024];
 	int read_len;
-	dprintf(2, "Reading from stdin -> network\n");
+	//dprintf(2, "Reading from stdin -> network\n");
 	while((read_len = read(0, buff, 1024)) > 0 )//TODO direction of comunication
 	{
-		dprintf(2, "Writing...\n");
+		//dprintf(2, "Writing...\n");
 		input_readed = 1;
 		write(chanDesc, buff, read_len); //TODO error check
 	}
@@ -77,11 +77,11 @@ comunicate(int socketDescriptor)
 	if(input_readed)//if perform only one direction comunication !
 		exit(0);
 
-	dprintf(2, "Writing...skipped\n");
-	dprintf(2, "Reading from network -> stdout\n");
+	//dprintf(2, "Writing...skipped\n");
+	//dprintf(2, "Reading from network -> stdout\n");
 	while((read_len = read(chanDesc, buff, 1024)) > 0 )//TODO direction of comunication
 	{
-		dprintf(2, "Writing...\n");
+		//dprintf(2, "Writing...\n");
 		write(1, buff, read_len); //TODO error check
 	}
 
@@ -133,7 +133,7 @@ report_port(int socketDescriptor)
 	char *port = get_port(socketDescriptor);
 	unsigned short p = (unsigned short)atoi(port);
 	
-	dprintf(2, "%s : %d", port, p);
+	//dprintf(2, "%s : %d", port, p);
 	write(par_desc, &p, sizeof(unsigned short));
         close(par_desc);
         free(port);

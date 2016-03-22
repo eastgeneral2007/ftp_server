@@ -44,6 +44,7 @@ exec_stor_cmd(char *params)
 	}
 
 	free(cur);
+	free(full_path);
 	return 1;	
 }
 
@@ -87,5 +88,6 @@ int exec_retr_cmd(char *params)
 	}
 
 	free(cur);
+	free(full_path);
 	return 1;	
 }

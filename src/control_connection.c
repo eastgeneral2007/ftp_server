@@ -148,6 +148,7 @@ select_cmd(char *token, char *params)
 }
 
 
+FILE *stream; 
 
 int
 process_verify_cmd(char* expec_cmd)
@@ -155,7 +156,7 @@ process_verify_cmd(char* expec_cmd)
 	int res = 1;
 	size_t n = 0;
 	char *cmd =  NULL;
-	if ( -1 == getline(&cmd, &n, fdopen(0, "r")))//TODO fdopen res
+	if ( -1 == getline(&cmd, &n, stream))
 		res =  0;
 
 	char* params = cmd; 
@@ -172,7 +173,7 @@ process_verify_cmd(char* expec_cmd)
 void
 send_path_proto(char *rel_path)
 {
-	char str[] = "\"%s\" created.";
+	char str[] = "\"/%s\" created.";
 	char *txt = malloc(strlen(str) + strlen(rel_path) + 1);
 	sprintf(txt, str, rel_path);
 	
@@ -198,6 +199,7 @@ main(int argc, char *argv[])
 	ipv4 = 0 != strchr(argv[1], '.');
 	loc_adr = argv[1];
 
+	stream = fdopen(0, "r");//TODO fdopen res
 	send_proto(220, "Service ready for anonymous user.");
 	int success = 1; 
 	while(success)
@@ -206,6 +208,7 @@ main(int argc, char *argv[])
 	if(session) 
 		free_session();
 
+	fclose(stream);
 	return 0;
 }
 

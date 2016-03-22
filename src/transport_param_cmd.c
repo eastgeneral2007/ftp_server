@@ -19,7 +19,7 @@ error_close(int p1[], int p2[], int p3[])
 	close(p3[1]);
 	free_trans();
 	pasv_error();
-	return 1;
+	return 0;
 }
 
 int
@@ -105,7 +105,7 @@ setup_pasv(void)
 	
 	if(!read(parent[0], &session->trans_con->port, sizeof(session->trans_con->port)))
 		return error_close(parent, trans_in, trans_out);
-	return reply_pasv(); 
+	return 1;
 }
 
 int
