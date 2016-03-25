@@ -243,3 +243,36 @@ get_full_path(char *root, char  **cur_path, char *params)
 }
 
 
+int parseint(char * str)
+{
+std::string input(str);
+
+bool overflow = false;
+
+int res = 0;
+
+for (size_t  i = 0; i < input.length(); i++)
+{
+if( input[i] < '0' || input[i] > '9')
+{
+error(mlc::DUERR_BADINT, cline, str);
+break;
+}
+
+int prev = res;
+
+res *= 10;
+res += input[i] - '0';
+
+if(!overflow && prev > res)
+{
+overflow = true;
+error(mlc::DUERR_INTOUTRANGE, cline, str);
+}
+}
+
+res &= ~0x40000000;
+return res;
+}
+
+
