@@ -15,6 +15,7 @@
 int par_desc, transport = 0;
 char *cur_file = NULL, *adr = NULL;
 
+//gets ipaddress of interface client is connected to
 char*
 get_loc_adr(int desc)
 {
@@ -32,6 +33,7 @@ get_loc_adr(int desc)
 	return res;
 }
 
+//returns port socket is listening on 
 char *
 get_port(int socketDescriptor)
 {
@@ -54,8 +56,9 @@ get_port(int socketDescriptor)
 	return res; 
 }
 
+//read/write data from pipes to socket
 void
-comunicate(int socketDescriptor)
+transfer_data(int socketDescriptor)
 {
 	int chanDesc;
 	if( (chanDesc = accept(socketDescriptor, NULL, 0)) == -1 )
@@ -94,6 +97,7 @@ comunicate(int socketDescriptor)
 	exit(0);
 }
 
+//accepts connections of clients and forks theirs control connections
 void
 accept_connections(int socketDescriptor)
 {
@@ -127,6 +131,7 @@ accept_connections(int socketDescriptor)
 
 
 
+//sends port number trasport is listening on to parent process
 void
 report_port(int socketDescriptor)
 {
@@ -140,6 +145,7 @@ report_port(int socketDescriptor)
 }
 
 
+//inicialize dual stack socket
 int
 init_dualstack(struct addrinfo *addr_res)
 {	int socketDescriptor = -1;
@@ -178,6 +184,7 @@ init_dualstack(struct addrinfo *addr_res)
 	return socketDescriptor;
 }
 
+//run the server either in transport on server mode 
 void
 startServer(char * port)
 {
@@ -200,7 +207,7 @@ startServer(char * port)
 	if(transport)
 	{
 		report_port(socketDescriptor);
-		comunicate(socketDescriptor);
+		transfer_data(socketDescriptor);
 	}
 	else
 	{

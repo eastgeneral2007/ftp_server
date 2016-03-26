@@ -4,6 +4,7 @@
 void
 free_trans(void);
 
+
 char *loc_adr;
 char *cur_file;
 int ipv4;

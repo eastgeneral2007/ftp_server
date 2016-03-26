@@ -1,8 +1,6 @@
 #include "browse_cmd.h"
 
-char * cur_path;
-char * root_path;
-
+//returns whether file described by full path is valid existing dir
 int
 verifi_ex_dir(char *full_abs_path)
 {
@@ -64,6 +62,7 @@ exec_list_cmd(char *params)
 	return 1;	
 }
 
+//prints file_time in mlsd format to desc. str format should have marked position by %s where the datum should be placed 
 void
 dprintf_date(int desc, char *str_format, struct timespec *file_time)
 {
@@ -74,6 +73,7 @@ dprintf_date(int desc, char *str_format, struct timespec *file_time)
 	dprintf(desc, str_format, str_t);
 }
 
+//prints mlsd type of file specifed by filename and stat struct to descriptor specifed by desc
 void
 dprintf_type(int desc, struct stat *f_info, char *filename)
 {
@@ -95,6 +95,7 @@ dprintf_type(int desc, struct stat *f_info, char *filename)
 	dprintf(desc, "type=%s;", type);
 }
 
+//writes file info in mlsd format do desriptor specifed by desc
 void
 write_file_info(int desc, struct stat *file_info, char *filename)
 {
@@ -104,7 +105,7 @@ write_file_info(int desc, struct stat *file_info, char *filename)
 	dprintf(desc, " %s\n", filename);	
 }
 
-//expecting valid dir path//writes data and close pipe
+//writes directory files description in mlsd format. expecting valid dir path//writes data and close pipe
 void
 write_mlsd_data(int desc, char * dir_path)
 {

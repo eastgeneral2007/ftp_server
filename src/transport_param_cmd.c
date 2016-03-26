@@ -8,6 +8,7 @@ pasv_error(void)
 	return 1;
 }
 
+//closes all pipes descriptors. expecting two elemts array describin pipes
 int
 error_close(int p1[], int p2[], int p3[])
 {
@@ -22,6 +23,7 @@ error_close(int p1[], int p2[], int p3[])
 	return 0;
 }
 
+//sent positive repy of pasv and epsv commands. for psav parse ip adress from loc_adr variable
 int
 reply_pasv(void)
 { 
@@ -47,6 +49,7 @@ reply_pasv(void)
 }
 	
 	
+//frees trans structure and its content at sets variable to NULL
 void	
 free_trans(void)
 {
@@ -61,6 +64,7 @@ free_trans(void)
 }
 
 
+//initialize transport connection structure and process
 int
 setup_pasv(void)
 {	

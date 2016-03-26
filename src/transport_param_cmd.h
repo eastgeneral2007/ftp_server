@@ -10,6 +10,7 @@ exec_pasv_cmd(char *params);
 int
 exec_epsv_cmd(char *params);
 
+//frees trans structure and its content at sets variable to NULL
 void	
 free_trans(void);
 

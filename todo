@@ -1,4 +1,4 @@
-do not run control connection under root
-transport connection timeout
-root directory change
+todo - do not run control connection under root
+todo - transport connection timeout
+done - root directory change
 

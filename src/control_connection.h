@@ -11,8 +11,11 @@
 
 #include "helper_fnc.h"
 
+//ip address client is connected to 
 extern char *loc_adr;
+//basename of executable
 extern char *cur_file;
+//bool if connection is ipv4
 extern int ipv4;
 
 struct trans_con{
@@ -21,6 +24,7 @@ struct trans_con{
 	pid_t pid;
 };
 
+//holds user login session, if no user is logged in it is NULL
 extern struct session{
 	char *user;
 	char *cur_path;
@@ -30,24 +34,24 @@ extern struct session{
 } *session;
 
 
+//sends string response in appropriate format back to client
 void 
 send_proto(int code, char *message);
 
-int
-process_cmd();
 
-int
-process_get_verify_cmd(char* expec_cmd);
-
+//allocate session structure and inicialize it
 void
 create_session(char *user);
 
+//dispose sesion data and unallocate structure and sets to NULL
 void
 free_session(void);
 
+//returns whether params is empty and send response to client a returns bool depenging on is_empty_valid parameter
 int
 params_empty(char *params, int is_empty_valid);
 
+//send response to client in appropriate format with path response
 void
 send_path_proto(char * rel_path);
 #endif
