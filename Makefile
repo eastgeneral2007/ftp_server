@@ -9,7 +9,7 @@ BIN=./bin/
 SRC=./src/
 
 all: $(BIN)server.out $(BIN)control_connection.out 
-	ln -f $(BIN)server.out $(BIN)transport.out	
+	ln -f $(BIN)server.out $(BIN)transport.out && mkdir -p $(BIN)root
 
 $(BIN)server.out: $(BIN)server.o $(BIN)helper_fnc.o 
 	$(CC)  -o $@ $^ $(OPTS)

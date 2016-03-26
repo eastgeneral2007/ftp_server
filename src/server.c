@@ -179,7 +179,7 @@ init_dualstack(struct addrinfo *addr_res)
 }
 
 void
-startServer(void)
+startServer(char * port)
 {
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(struct addrinfo));
@@ -188,7 +188,7 @@ startServer(void)
 	hints.ai_socktype = SOCK_STREAM;
 	
 	struct addrinfo *addr_res;	
-	if(getaddrinfo(transport ? adr : NULL, transport ? NULL : "ftp", &hints, &addr_res))
+	if(getaddrinfo(transport ? adr : NULL, transport ? NULL : (port ? port : "ftp"), &hints, &addr_res))
 		err(1, "cant get addrinfo" );
 	int socketDescriptor = init_dualstack(addr_res);
 	freeaddrinfo(addr_res);
@@ -217,27 +217,32 @@ main(int argc, char* argv[])
 	transport = !strcmp(cur_file, "transport.out");
 	if(transport)
 	{
-		if(argc != 3)
+		int error;
+		par_desc = parse_int(argv[2], &error);
+		if(argc != 3 || error)
 		{
-			dprintf(2, "usage:\n");
-			dprintf(2, "transport.out <interface_adr> <parent_comunication_descriptor>\n");
+			dprintf(2, "usage: transport.out <interface_adr> <parent_comunication_descriptor>\n");
 			exit(1);
 		}
-		adr = argv[1];
-		par_desc = atoi(argv[2]);
-		//dprintf(2, "hello from transport\n");
+		else
+		{
+			adr = argv[1];
+			startServer(NULL);
+		}
 	}
 	else
 	{
-		if(argc != 1 || !strcmp(argv[0], "server.out"))
+		if(argc > 2 || !strcmp(argv[0], "server.out"))
 		{
-			dprintf(2, "usage:\n");
-			dprintf(2, "server.out\n");
+			dprintf(2, "usage: server.out [<listening_port>]\n");
 			exit(1);
 		}
+		else if( argc == 2)
+			startServer(argv[1]);
+		else
+			startServer(NULL);
 	}
 
-	startServer();
 	return (0);
 }
 

@@ -17,7 +17,7 @@ create_session(char *user)
 	strcpy(session->user, user);   
 	session->cur_path = malloc(1);
 	*session->cur_path = '\0';
-	session->root_path = get_abs_path("", cur_file);
+	session->root_path = get_abs_path("root", cur_file);
 	session->trans_con = NULL;
 	session->next_seq_cmd = NULL;
 }
@@ -192,7 +192,7 @@ main(int argc, char *argv[])
 {
         if(argc != 2)
         {
-        	dprintf(2, "usage: %s <ip address of interface client is connected to>\n", basename(argv[0]));
+		dprintf(2, "usage: %s <ip_address_of_interface_client_is_connected_to>\n", basename(argv[0]));
         	return 1;
         }
 	cur_file = basename(argv[0]);

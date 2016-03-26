@@ -38,4 +38,6 @@ remove_slashes(char *path);
 char *
 get_full_path(char *root, char  **cur_path, char *params);
 
+int 
+parse_int(char *input, int* error_res);
 #endif
