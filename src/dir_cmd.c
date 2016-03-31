@@ -18,6 +18,7 @@ exec_mkd_cmd(char *params)
 		send_proto(550, "Requested action not taken.");
 	}
 	free(cur);
+	free(full_path);
 
 	return 1;
 }
@@ -40,8 +41,8 @@ exec_rmd_cmd(char *params)
 		send_proto(550, "Requested action not taken.");
 	}
 	free(cur);
+	free(full_path);
 
 	return 1;
-
 
 }

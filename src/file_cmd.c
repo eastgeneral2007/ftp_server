@@ -17,6 +17,7 @@ exec_rnfr_cmd(char *params)
 	}
 	else
 	{
+		free(full_path);
 		send_proto(550, "Requested action not taken");	
 	}
 
@@ -51,6 +52,7 @@ exec_rnto_cmd(char *params)
 	}
 
 	free(cur);	
+	free(full_path);
 	free(rnfrom);
 	rnfrom = NULL;
 	return 1;
@@ -71,6 +73,7 @@ exec_dele_cmd(char *params)
 	else
 		send_proto(550, "Requested action not taken");
 
+	free(full_path);
 	free(cur);	
 	return 1;
 }

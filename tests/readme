@@ -1,0 +1,5 @@
+control.in - input commands
+forwarder.sh - shell script which is making delay after every command
+mem-test.sh - run control_connection with valgrind and control.in as input commands => application have to be built in bin directory !!!!
+output-test.sh - same as script above unless valgrind is not executed
+telnet-test.sh - sends commands in control.in to ftp server runing on ::1 21212 via telnet => server has to be started manualy on appropriate port !!!!!

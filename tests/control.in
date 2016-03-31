@@ -1,0 +1,39 @@
+
+user
+user asdf
+user     
+user				
+user anonymous
+pwd     
+pwd			
+pwd	 	 
+pwd .
+pwd /./
+mkd
+mkd    
+mkd				
+mkd 	 	 	
+mkd /
+mkd .
+mkd ..
+mkd /././////
+mkd ////////////
+mkd /././
+mkd ahoj
+cwd /
+pwd
+cwd ./././ahoj.
+pwd
+cwd /ahoj////
+pwd
+cdup
+pwd
+cwd ahoj
+pwd
+cwd /
+pwd
+rnfr /././././ahoj/../ahoj/././///////
+rnto /././././ahoj/.././././hello////////
+mkd /./././xxx/././
+quit asdfadf
+quit

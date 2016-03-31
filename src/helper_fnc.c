@@ -1,12 +1,14 @@
 #include "helper_fnc.h"
 
 char *
-ltrim_char(char *s, int(*is_char)(int))
+ltrim_char(char *sx, int(*is_char)(int))
 {
-	if(!s) 
+	size_t len = strlen(sx);
+	char *s = sx;
+	if(!s);
 		return s;
 
-	while(is_char(*s)) 
+	while( (s - sx) <= len  && is_char(*s)) 
 		s++;
 	return s;
 }
@@ -18,7 +20,7 @@ rtrim_char(char *s, int(*is_char)(int))
 		return s;
 
 	char* back = s + strlen(s);
-	while(is_char(*--back));
+	while(back > s && is_char(*--back));
 	*(back+1) = '\0';
 
 	return s;
@@ -141,7 +143,7 @@ dir_lst_to_path(char **dir_list)
 	while(*i != (char*)NULL)
 		len += strlen(*i++) + 1;//for slashes or \0
 	
-	char *res = malloc(len);
+	char *res = malloc(len + 1/*cause if len==0 we need trailing \0*/);
 	strcpy(res, "");
 	i = dir_list;
 	while(*i != (char*)NULL)
@@ -163,7 +165,7 @@ remove_relatives(char *path)
 {
 	char *seg_ptr_end = path;
 
-	char **dirs = malloc((strlen(path) + 1) * sizeof(char**));
+	char **dirs = malloc((strlen(path) + 2/*cause of zero length -> list tremination*/) * sizeof(char**));
 	char **seg_ptr;
 	for(seg_ptr = dirs; ; seg_ptr++)
 	{
@@ -188,7 +190,10 @@ remove_relatives(char *path)
 		{
 			seg_ptr -= 2;
 			if(seg_ptr < dirs - 1)
+			{
+				free(dirs);
 				return NULL;
+			}
 		}
 
 		if(end)

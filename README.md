@@ -53,3 +53,5 @@ extern struct session{
 ```
 #####Other
 ######Besides commands modules which simply provide respones to command there is helper_fnc.c module. The module provides some helper functions which are not avalible in standart libraries such as: triming by specifed char safe atoi conversion function and mainly function for parsing and simplifing servers paths. Detailed documentation for each function can be found in header files.
+#####Tests
+###### There are tests in /tests directory, which are intended mainly for memchcking. They are testing different cases of commands (sucess, failure, etc.). Please, before using these tests read readme in /test directory, because some tests need prerequisite. For other testing i've simply used client such as winscp to test all commands specifed in specification. 

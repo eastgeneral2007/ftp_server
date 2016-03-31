@@ -18,7 +18,7 @@ create_session(char *user)
 	strcpy(session->user, user);   
 	session->cur_path = malloc(1);
 	*session->cur_path = '\0';
-	session->root_path = get_abs_path("root", cur_file);
+	session->root_path = get_abs_path("root/", cur_file);
 	session->trans_con = NULL;
 	session->next_seq_cmd = NULL;
 }
@@ -158,13 +158,19 @@ process_verify_cmd(char* expec_cmd)
 	size_t n = 0;
 	char *cmd =  NULL;
 	if ( -1 == getline(&cmd, &n, stream))
-		res =  0;
+	{
+		free(cmd);
+		return  0;
+	}
 
 	char* params = cmd; 
 	char* token = str_upper(strsep(&params, " \v\f\r\n\t"));
 
 	if(expec_cmd != NULL && !strcmp(token,expec_cmd))
-		res = 0;
+	{
+		free(cmd);
+		return  0;
+	}
 
 	res = res && select_cmd(token, trim(params));	
 	free(cmd);
