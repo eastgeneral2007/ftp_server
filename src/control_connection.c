@@ -206,7 +206,13 @@ main(int argc, char *argv[])
 	ipv4 = 0 != strchr(argv[1], '.');
 	loc_adr = argv[1];
 
-	stream = fdopen(0, "r");//TODO fdopen res
+	stream = fdopen(0, "r");
+	if(!stream)
+	{
+		send_proto(421, "Service not available.");
+		return 1;
+	}
+
 	send_proto(220, "Service ready for anonymous user.");
 	int success = 1; 
 	while(success)

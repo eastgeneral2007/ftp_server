@@ -1,10 +1,12 @@
-#ifndef trin_h
+#ifndef trim_h
 #define trim_h
 
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <libgen.h>
+#define _GNU_SOURCE
 #include <stdio.h>
 
 //trims string from left by white spaces string is edited

@@ -23,31 +23,6 @@ error_close(int p1[], int p2[], int p3[])
 	return 0;
 }
 
-//sent positive repy of pasv and epsv commands. for psav parse ip adress from loc_adr variable
-int
-reply_pasv(void)
-{ 
-	char *ip4 = strrchr(loc_adr, ':') + 1;
-	char ip_f[strlen(ip4) + 1];
-	char *s = strcpy(ip_f, ip4);
-	while( 0 != (s = strchr(s, '.')))
-		*s = ',';		
-
-	char message[255]; 
-	if(ipv4)
-	{
-		unsigned short x = session->trans_con->port;
-		snprintf(message, 255, "Entering pasive mode. %d (%s,%d,%d)", x, ip_f, *((unsigned char*)&x + 1), *((unsigned char*)&x));
-		send_proto(227, message);
-	}
-	else
-	{ 
-		//TODO set message
-		send_proto(229, message); 
-	}
-	return 1;
-}
-	
 	
 //frees trans structure and its content at sets variable to NULL
 void	

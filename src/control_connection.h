@@ -1,6 +1,7 @@
 #ifndef control_connection_h
 #define control_connection_h
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

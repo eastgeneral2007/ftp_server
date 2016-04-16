@@ -1,14 +1,17 @@
 #include <err.h>
 #include <errno.h>
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <libgen.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include "helper_fnc.h"
 
@@ -19,17 +22,17 @@ char *cur_file = NULL, *adr = NULL;
 char*
 get_loc_adr(int desc)
 {
-	struct sockaddr cur_adr;	
-	socklen_t len = sizeof(struct sockaddr_in6); 
+	struct sockaddr *cur_adr = malloc(sizeof(struct sockaddr));	
+	socklen_t len =  sizeof(struct sockaddr_in6); 
 	
-	if( -1 == getsockname(desc, &cur_adr, &len))
+	if( -1 == getsockname(desc, cur_adr, &len))
 		err(1, "cannott read socked addr struct");
 
 	char *res = malloc(INET6_ADDRSTRLEN);
 
-	if(!inet_ntop(AF_INET6, &((struct sockaddr_in6*)&cur_adr)->sin6_addr, res, INET6_ADDRSTRLEN))
-		err(1, "inet_ntop fucky me up");
-
+	if(!inet_ntop(AF_INET6, &((struct sockaddr_in6*)cur_adr)->sin6_addr, res, INET6_ADDRSTRLEN))
+		err(1, "inet_ntop error");
+	free(cur_adr);
 	return res;
 }
 
@@ -37,22 +40,20 @@ get_loc_adr(int desc)
 char *
 get_port(int socketDescriptor)
 {
-	struct sockaddr cur_adr;	
-	socklen_t len =sizeof(struct sockaddr); 
+	struct sockaddr *cur_adr = malloc(sizeof(struct sockaddr));	
+	socklen_t len =  sizeof(struct sockaddr_in6); 
 	
-	if( -1 == getsockname(socketDescriptor , &cur_adr, &len))
-		err(1, "cannott read socked addr struct");
+	if( -1 == getsockname(socketDescriptor , cur_adr, &len))
+		err(1, "cannott read socked addr struct- port ");
 
 	char *res = malloc(transport ? NI_MAXSERV : INET6_ADDRSTRLEN);
 
-	//if(!inet_ntop(AF_INET6, &((struct sockaddr_in6*)&cur_adr)->sin6_addr, res, INET6_ADDRSTRLEN))
-	//	err(1, "inet_ntop fucky me up");
-
-	int er = getnameinfo(&cur_adr, len, NULL, 0, res, sizeof(res), 0);
+	int er = getnameinfo(cur_adr, len, NULL, 0, res, sizeof(res), 0);
 	if(er)	
-		printf( gai_strerror(er));
+		printf("%s\n", gai_strerror(er));
 	
 //	printf("res: %s\n", res);
+	free(cur_adr);
 	return res; 
 }
 
@@ -67,11 +68,11 @@ transfer_data(int socketDescriptor)
 	char* buff[1024];
 	int read_len;
 	//dprintf(2, "Reading from stdin -> network\n");
-	while((read_len = read(0, buff, 1024)) > 0 )//TODO direction of comunication
+	while((read_len = read(0, buff, 1024)) > 0 )
 	{
 		//dprintf(2, "Writing...\n");
 		input_readed = 1;
-		write(chanDesc, buff, read_len); //TODO error check
+		write(chanDesc, buff, read_len); 
 	}
 
 	if(read_len == -1)
@@ -82,10 +83,10 @@ transfer_data(int socketDescriptor)
 
 	//dprintf(2, "Writing...skipped\n");
 	//dprintf(2, "Reading from network -> stdout\n");
-	while((read_len = read(chanDesc, buff, 1024)) > 0 )//TODO direction of comunication
+	while((read_len = read(chanDesc, buff, 1024)) > 0 )
 	{
 		//dprintf(2, "Writing...\n");
-		write(1, buff, read_len); //TODO error check
+		write(1, buff, read_len); 
 	}
 
 	if(read_len == -1)
@@ -106,12 +107,12 @@ accept_connections(int socketDescriptor)
 	{
 		int chanDesc;
 		if( (chanDesc = accept(socketDescriptor, NULL, 0)) == -1 )
-			err(1, "unable accept connection");//TODO
+			err(1, "unable accept connection");
 
 		switch(fork())
 		{
 			case -1:
-				err(1, "cannot fork"); //TODO
+				err(1, "cannot fork"); 
 				break;
 			case 0: 
 				close(0);

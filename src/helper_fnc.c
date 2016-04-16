@@ -5,7 +5,7 @@ ltrim_char(char *sx, int(*is_char)(int))
 {
 	size_t len = strlen(sx);
 	char *s = sx;
-	if(!s);
+	if(!s)
 		return s;
 
 	while( (s - sx) <= len  && is_char(*s)) 
@@ -16,7 +16,7 @@ ltrim_char(char *sx, int(*is_char)(int))
 char *
 rtrim_char(char *s, int(*is_char)(int))
 {
-	if(!s) 
+	if(!s || strlen(s) == 0) 
 		return s;
 
 	char* back = s + strlen(s);
@@ -79,12 +79,15 @@ str_lower(char *s)
 char* 
 get_abs_path(char *file, char *cur_file)
 {
-	char *cur_path = "/proc/self/exe";
-	char *abs_path = malloc(PATH_MAX);
-	realpath(cur_path, abs_path);
-	strcpy(abs_path + strlen(abs_path) -  strlen(cur_file), file);
-	*(abs_path + strlen(abs_path) + strlen(file) + 1) = '\0';	
-	return abs_path;
+	char buf[PATH_MAX];
+	realpath(cur_file, buf);
+	char *dir = dirname(buf);
+
+	char *res = malloc(PATH_MAX);
+	strcpy(res, dir);
+	strcat(res, "/");
+	strcat(res, file);
+	return res;
 }
 
 int
@@ -275,3 +278,5 @@ parse_int(char *input, int* error_res)
 	}
 	return res;
 }
+
+

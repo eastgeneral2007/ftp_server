@@ -25,7 +25,7 @@ exec_stor_cmd(char *params)
 		char* buff[1024];
 		int read_len;
 		while((read_len = read(session->trans_con->trans_out, buff, 1024)) > 0 )
-			write(f_desc, buff, read_len); //TODO error check
+			write(f_desc, buff, read_len); 
 
 		close(session->trans_con->trans_out);
 
@@ -69,7 +69,7 @@ int exec_retr_cmd(char *params)
 		char* buff[1024];
 		int read_len;
 		while((read_len = read(f_desc, buff, 1024)) > 0 )
-			write(session->trans_con->trans_in, buff, read_len); //TODO error check
+			write(session->trans_con->trans_in, buff, read_len); 
 
 		close(session->trans_con->trans_in);
 

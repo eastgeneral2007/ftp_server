@@ -43,7 +43,6 @@ exec_list_cmd(char *params)
 		close(1); 
 		dup(session->trans_con->trans_in); 
 		execl("/bin/ls", "ls", "-la", ls_param, NULL);
-		//TODO error outputs of ls
 	}
 	close(session->trans_con->trans_in);
 	free(ls_param);
@@ -113,7 +112,7 @@ write_mlsd_data(int desc, char * dir_path)
 	struct dirent *dir_item;
 	DIR * dir_stream = opendir(dir_path);
 
-	while(NULL != (dir_item = readdir(dir_stream)))//TODO what about errno ? ? 
+	while(NULL != (dir_item = readdir(dir_stream)))
 	{
 		char * file_path = malloc(strlen(dir_path) + 1 + strlen(dir_item->d_name) + 1);
 		strcpy(file_path, dir_path);
@@ -124,6 +123,7 @@ write_mlsd_data(int desc, char * dir_path)
 		if(-1 != stat_res)
 			write_file_info(desc, &file_info, dir_item->d_name);
 	}
+	closedir(dir_stream);
 	close(desc);
 }
 
