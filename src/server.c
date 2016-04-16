@@ -22,17 +22,15 @@ char *cur_file = NULL, *adr = NULL;
 char*
 get_loc_adr(int desc)
 {
-	struct sockaddr *cur_adr = malloc(sizeof(struct sockaddr));	
+	struct sockaddr cur_adr;
 	socklen_t len =  sizeof(struct sockaddr_in6); 
 	
-	if( -1 == getsockname(desc, cur_adr, &len))
+	if( -1 == getsockname(desc, &cur_adr, &len))
 		err(1, "cannott read socked addr struct");
 
 	char *res = malloc(INET6_ADDRSTRLEN);
-
-	if(!inet_ntop(AF_INET6, &((struct sockaddr_in6*)cur_adr)->sin6_addr, res, INET6_ADDRSTRLEN))
+	if(!inet_ntop(AF_INET6, &((struct sockaddr_in6*)&cur_adr)->sin6_addr, res, INET6_ADDRSTRLEN))
 		err(1, "inet_ntop error");
-	free(cur_adr);
 	return res;
 }
 
@@ -40,20 +38,20 @@ get_loc_adr(int desc)
 char *
 get_port(int socketDescriptor)
 {
-	struct sockaddr *cur_adr = malloc(sizeof(struct sockaddr));	
+	int res_len = transport ? NI_MAXSERV : INET6_ADDRSTRLEN;
+	struct sockaddr cur_adr;
 	socklen_t len =  sizeof(struct sockaddr_in6); 
 	
-	if( -1 == getsockname(socketDescriptor , cur_adr, &len))
+	if( -1 == getsockname(socketDescriptor , &cur_adr, &len))
 		err(1, "cannott read socked addr struct- port ");
 
-	char *res = malloc(transport ? NI_MAXSERV : INET6_ADDRSTRLEN);
 
-	int er = getnameinfo(cur_adr, len, NULL, 0, res, sizeof(res), 0);
+	char *res = malloc(res_len);
+	int er = getnameinfo(&cur_adr, len, NULL, 0, res, res_len, 0);
 	if(er)	
 		printf("%s\n", gai_strerror(er));
 	
 //	printf("res: %s\n", res);
-	free(cur_adr);
 	return res; 
 }
 
