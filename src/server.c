@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <err.h>
 #include <errno.h>
 #define _GNU_SOURCE
@@ -45,54 +46,62 @@ get_port(int socketDescriptor)
 	if( -1 == getsockname(socketDescriptor , (struct sockaddr*)&cur_adr, &len))
 		err(1, "cannott read socked addr struct- port ");
 
-
 	char *res = malloc(res_len);
-	int er = getnameinfo((struct sockaddr*)&cur_adr, len, NULL, 0, res, res_len, 0);
+	int er = getnameinfo((struct sockaddr*)&cur_adr, len, NULL, 0, res, res_len, NI_NUMERICHOST | NI_NUMERICSERV);
 	if(er)	
 		printf("%s\n", gai_strerror(er));
 	
-//	printf("res: %s\n", res);
+	//dprintf(2, "transport port: %s\n", res);
 	return res; 
 }
 
-//read/write data from pipes to socket
+#define ER(x) if(-1 == x) err(1, "transfer data error");
+
+//sends data from inDesc to outDesc
+void
+send_data(int inDesc, int outDesc)
+{
+	char* buff[1024];
+	int read_len;
+	while((read_len = read(inDesc, buff, 1024)) > 0 )//TODO error
+	{
+		ER(read_len);
+		ER(write(outDesc, buff, read_len));
+	}
+	ER(read_len);
+}
+
+//read/write data from pipes to socket. If SIGUSR1 is recieved comunication is set from input to socket.
+//Otherwise if SIGUSR2 is recieved communication is from socket to ouput.
 void
 transfer_data(int socketDescriptor)
 {
+	int res_sig;
+	sigset_t set;
 	int chanDesc;
-	if( (chanDesc = accept(socketDescriptor, NULL, 0)) == -1 )
-		err(1, "unable accept connection");
-	int input_readed = 0;
-	char* buff[1024];
-	int read_len;
-	//dprintf(2, "Reading from stdin -> network\n");
-	while((read_len = read(0, buff, 1024)) > 0 )
-	{
-		//dprintf(2, "Writing...\n");
-		input_readed = 1;
-		write(chanDesc, buff, read_len); 
-	}
+	//dprintf(2, "before signal setup\n");
 
-	if(read_len == -1)
-		err(1, "error while reding from soocket" );
+	ER(sigemptyset(&set));
+	ER(sigaddset(&set, SIGUSR1));
+	ER(sigaddset(&set, SIGUSR2));
+	ER(sigprocmask(SIG_SETMASK, &set, NULL));
 	
-	if(input_readed)//if perform only one direction comunication !
-		exit(0);
+	ER((chanDesc = accept(socketDescriptor, NULL, 0))); 
+	//dprintf(2, "socket accepted\n");
 
-	//dprintf(2, "Writing...skipped\n");
-	//dprintf(2, "Reading from network -> stdout\n");
-	while((read_len = read(chanDesc, buff, 1024)) > 0 )
-	{
-		//dprintf(2, "Writing...\n");
-		write(1, buff, read_len); 
-	}
+	if(sigwait(&set, &res_sig) != 0)
+		exit(1);
 
-	if(read_len == -1)
-		err(1, "error while reding from soocket" );
+	//dprintf(2, "signal accepted\n");
 
+	if(res_sig == SIGUSR1)
+		send_data(0, chanDesc);
+	else if(res_sig == SIGUSR2)
+		send_data(chanDesc, 1);
+	else
+		exit(1);
 	
-	close(chanDesc);
-	close(socketDescriptor);
+	ER(close(socketDescriptor));
 	exit(0);
 }
 
@@ -135,10 +144,11 @@ void
 report_port(int socketDescriptor)
 {
 	char *port = get_port(socketDescriptor);
-	unsigned short p = (unsigned short)atoi(port);
+	int er = 0;
+	unsigned short int_port = (unsigned short)parse_int(port, &er);
 	
 	//dprintf(2, "%s : %d", port, p);
-	write(par_desc, &p, sizeof(unsigned short));
+	write(par_desc, &int_port, sizeof(unsigned short));
         close(par_desc);
         free(port);
 }

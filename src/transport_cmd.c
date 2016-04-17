@@ -21,13 +21,14 @@ exec_stor_cmd(char *params)
 	{
 		send_proto(150, "File status okay, about to open data connection");
 
-		close(session->trans_con->trans_in);
+		int trans_desc = start_recieve();
 		char* buff[1024];
 		int read_len;
-		while((read_len = read(session->trans_con->trans_out, buff, 1024)) > 0 )
+		while((read_len = read(trans_desc, buff, 1024)) > 0 )
 			write(f_desc, buff, read_len); 
 
-		close(session->trans_con->trans_out);
+		close(f_desc);
+		close(trans_desc);
 
 		pid_t status_trans;
 		pid_t y = waitpid(session->trans_con->pid, &status_trans, WCONTINUED);
@@ -66,12 +67,14 @@ int exec_retr_cmd(char *params)
 	{
 		send_proto(150, "File status okay, about to open data connection");
 
+		int trans_desc = start_send(); 
 		char* buff[1024];
 		int read_len;
 		while((read_len = read(f_desc, buff, 1024)) > 0 )
-			write(session->trans_con->trans_in, buff, read_len); 
+			write(trans_desc, buff, read_len); 
 
-		close(session->trans_con->trans_in);
+		close(trans_desc);
+		close(f_desc);
 
 		pid_t status_trans;
 		pid_t y = waitpid(session->trans_con->pid, &status_trans, WCONTINUED);

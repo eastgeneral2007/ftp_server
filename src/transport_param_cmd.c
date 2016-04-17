@@ -38,6 +38,23 @@ free_trans(void)
 	session->trans_con = NULL;
 }
 
+//sends signal to transport connection process to read from its input
+int
+start_send(void)
+{
+	if(1 == kill(session->trans_con->pid, SIGUSR1))
+		return -1;
+	return session->trans_con->trans_in;
+}
+
+//sends signal to transpourt connection process to write tu its ouput
+int
+start_recieve(void)
+{
+	if(1 == kill(session->trans_con->pid, SIGUSR2))
+		return -1;
+	return session->trans_con->trans_out;
+}
 
 //initialize transport connection structure and process
 int
@@ -52,7 +69,10 @@ setup_pasv(void)
 	r1 = -1 == pipe(trans_in); 
 	r2 = -1 == pipe(trans_out);
 	if(r0 || r1 || r2)
+	{
+		//dprintf(2, "error line 56: %d,%d,%d\n", r0, r1, r2);
 		return error_close(parent, trans_in, trans_out);
+	}
 
 	session->trans_con = malloc(sizeof(struct trans_con));
 	if((session->trans_con->pid = fork()) == 0)
@@ -73,7 +93,10 @@ setup_pasv(void)
 	}
 	
 	if(session->trans_con->pid == -1)
+	{
+		//dprintf(2, "error line 80: \n");
 		return error_close(parent, trans_in, trans_out);
+	}
 
 	close(parent[1]);	
 	close(trans_in[0]);
@@ -83,7 +106,11 @@ setup_pasv(void)
 	session->trans_con->trans_out = trans_out[0];
 	
 	if(!read(parent[0], &session->trans_con->port, sizeof(session->trans_con->port)))
+	{
+		//dprintf(2, "error line 93: port %d\n", (int)session->trans_con->port );
 		return error_close(parent, trans_in, trans_out);
+	}
+	close(parent[0]);
 	return 1;
 }
 

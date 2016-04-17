@@ -77,6 +77,8 @@ check_user(int(*cmd)(char*), char *token, char *params)
 int
 select_cmd(char *token, char *params)
 {
+	//dprintf(2, "%s %s\n", token, params);
+
 	if(!strcmp(token, "USER")) // 0 -> equals
 	{
 		return exec_user_cmd(params);
@@ -154,7 +156,6 @@ FILE *stream;
 int
 process_verify_cmd(char* expec_cmd)
 {
-	int res = 1;
 	size_t n = 0;
 	char *cmd =  NULL;
 	if ( -1 == getline(&cmd, &n, stream))
@@ -171,10 +172,20 @@ process_verify_cmd(char* expec_cmd)
 		free(cmd);
 		return  0;
 	}
-
-	res = res && select_cmd(token, trim(params));	
+	
+	int cmd_res = select_cmd(token, trim(params));
 	free(cmd);
-	return res;
+	
+	switch(cmd_res)
+	{
+		case -1:
+			send_proto(421, "Service not avalible, error internal error ocured");
+			return 1;
+		case  0:
+			return 0;
+		default:
+			return 1;
+	}
 }
 
 void

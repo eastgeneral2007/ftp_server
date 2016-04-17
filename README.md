@@ -20,7 +20,7 @@
 ######Control connection then handles communication with one client. After all communication with client is done process ends thus socket descriptors are closed. It support all commands specifed above in specification. 
 ###### usage: ./control_connection.out `<ip_address_of_interface_client_is_connected_to>`
 #####Transport connection
-######If client requires data transfer control connection process forks and execs transport.out with three pipes between them. Executable transport.out requires ip address and socket descriptor of pipe intended for communication with parent(control connection). Through this pipe transport sends two bytes representing port on which transport is listening on. 
+######If client requires data transfer control connection process forks and execs transport.out with three pipes between them. Executable transport.out requires ip address and socket descriptor of pipe intended for communication with parent(control connection). Through this pipe transport sends two bytes representing port on which transport is listening on. Transport process then accept conneciton from clien and waits for signals from control connection. If the signal SIGUSR1 is recieved, transport process reads from its input and forward data to socket. Otherwise if signal SIGUSR2 is recieved transport process reads from socket and forward data to stdout. 
 ######usage: transport.out `<interface_adr> <parent_comunication_descriptor>`
 ##Programmer documentation
 #####Control connection

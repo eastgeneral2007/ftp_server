@@ -37,14 +37,15 @@ exec_list_cmd(char *params)
 		return 1;
 	}
 
+	int trans_desc = start_send();
 	pid_t son;
 	if((son = fork()) == 0)//producent
 	{	
 		close(1); 
-		dup(session->trans_con->trans_in); 
+		dup(trans_desc); 
 		execl("/bin/ls", "ls", "-la", ls_param, NULL);
 	}
-	close(session->trans_con->trans_in);
+	close(trans_desc);
 	free(ls_param);
 	
 	int status_prod = -1, status_trans = -1;
@@ -151,7 +152,7 @@ exec_mlsd_cmd(char *params)
 		return 1;
 	}
 
-	write_mlsd_data(session->trans_con->trans_in, dir_path); 
+	write_mlsd_data(start_send(), dir_path); 
 
 	free(dir_path);
 	
