@@ -3,7 +3,7 @@
 #$? all prerequisitas delimited by space
 
 #CC=gcc
-OPTS=-g -Wall -O0
+#OPTS=-g -Wall -O0
 
 BIN=./bin/
 SRC=./src/
