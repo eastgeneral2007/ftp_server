@@ -127,7 +127,7 @@ exec_pasv_cmd(char *params)
 	if(!session->trans_con)
 		return 1;
 
-	char *ip4 = strrchr(loc_adr, ':') + 1;
+	char *ip4 = loc_adr; //strrchr(loc_adr, ':') + 1;
 	char ip_f[strlen(ip4) + 1];
 	char *s = strcpy(ip_f, ip4);
 	while( 0 != (s = strchr(s, '.')))

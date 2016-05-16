@@ -3,7 +3,7 @@
 #$? all prerequisitas delimited by space
 
 #CC=gcc
-#OPTS=-g -Wall -O0
+OPTS=-g -Wall -O0
 
 BIN=./bin/
 SRC=./src/
@@ -15,7 +15,7 @@ bin:
 	mkdir -p $(BIN)
 
 $(BIN)server.out: $(BIN)server.o $(BIN)helper_fnc.o 
-	$(CC) $(OPTS) -o $@ $(BIN)server.o $(BIN)helper_fnc.o 
+	$(CC) $(OPTS) -o $@ $(BIN)server.o $(BIN)helper_fnc.o -lpthread
 
 $(BIN)control_connection.out: $(BIN)control_connection.o $(BIN)login_cmd.o $(BIN)helper_fnc.o $(BIN)browse_cmd.o $(BIN)transport_cmd.o $(BIN)dir_cmd.o $(BIN)file_cmd.o $(BIN)transport_param_cmd.o
 	$(CC) $(OPTS) -o $@ $(BIN)control_connection.o $(BIN)login_cmd.o $(BIN)helper_fnc.o $(BIN)browse_cmd.o $(BIN)transport_cmd.o $(BIN)dir_cmd.o $(BIN)file_cmd.o $(BIN)transport_param_cmd.o

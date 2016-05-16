@@ -257,7 +257,9 @@ parse_int(char *input, int* error_res)
 	*error_res = 0;
 	int res = 0;
 
-	for (size_t  i = 0; i < strlen(input); i++)
+	size_t  i;
+
+	for (i = 0; i < strlen(input); i++)
 	{
 		if( input[i] < '0' || input[i] > '9')
 		{

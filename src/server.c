@@ -13,15 +13,16 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <strings.h>
 
 #include "helper_fnc.h"
 
 int par_desc, transport = 0;
 char *cur_file = NULL, *adr = NULL;
+static int af = AF_UNSPEC;
 
-//gets ipaddress of interface client is connected to
 char*
-get_loc_adr(int desc)
+get_loc_adr6(int desc)
 {
 	struct sockaddr_in6 cur_adr;
 	socklen_t len =  sizeof(struct sockaddr_in6); 
@@ -35,10 +36,47 @@ get_loc_adr(int desc)
 	return res;
 }
 
+char*
+get_loc_adr4(int desc)
+{
+	struct sockaddr_in cur_adr;
+	socklen_t len =  sizeof(struct sockaddr_in); 
+	
+	if( -1 == getsockname(desc, (struct sockaddr*)&cur_adr, &len))
+		err(1, "cannott read socked addr struct");
+
+	char *res = malloc(INET_ADDRSTRLEN);
+	if(!inet_ntop(AF_INET, &(&cur_adr)->sin_addr, res, INET_ADDRSTRLEN))
+		err(1, "inet_ntop error");
+	return res;
+}
+
+//gets ipaddress of interface client is connected to
+char*
+get_loc_adr(int desc)
+{
+	switch(af)
+	{
+		case AF_INET:
+			return get_loc_adr4(desc);
+		case AF_INET6:
+			return get_loc_adr6(desc);
+		default:
+
+			errx(1, "inalid af specification");
+			return NULL;
+			break;
+
+	}
+}
+
+
+
 //returns port socket is listening on 
 char *
 get_port(int socketDescriptor)
 {
+	
 	int res_len = transport ? NI_MAXSERV : INET6_ADDRSTRLEN;
 	struct sockaddr_in6 cur_adr;
 	socklen_t len =  sizeof(struct sockaddr_in6); 
@@ -125,6 +163,7 @@ accept_connections(int socketDescriptor)
 				close(0);
 				close(1);	
 				char *adr = get_loc_adr(chanDesc);
+				dprintf(2, adr);
 				dup(chanDesc);
 				dup(chanDesc); close(chanDesc);
 				execl(get_abs_path(file, cur_file), file, adr, (char*)NULL);
@@ -153,6 +192,7 @@ report_port(int socketDescriptor)
         free(port);
 }
 
+#if 0
 
 //inicialize dual stack socket
 int
@@ -193,26 +233,92 @@ init_dualstack(struct addrinfo *addr_res)
 	return socketDescriptor;
 }
 
-//run the server either in transport on server mode 
-void
-startServer(char * port)
-{
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_INET6;
-	hints.ai_socktype = SOCK_STREAM;
-	
-	struct addrinfo *addr_res;	
-	if(getaddrinfo(transport ? adr : NULL, transport ? NULL : (port ? port : "ftp"), &hints, &addr_res))
-		err(1, "cant get addrinfo" );
-	int socketDescriptor = init_dualstack(addr_res);
-	freeaddrinfo(addr_res);
+#endif
 
-	//((struct sockaddr_in6*)addr_res->ai_addr)
-	if(listen(socketDescriptor , SOMAXCONN) == -1)
-		err(1, "unable start listening socket");
-	
+int
+initSock(struct addrinfo *addr_res)
+{
+	struct	addrinfo *walk_ai = addr_res;
+	int	set = 1;
+	int	s;
+	int	rv;
+
+	do {
+		s = socket(walk_ai->ai_family, walk_ai->ai_socktype,
+		    walk_ai->ai_protocol);
+		if (s < 0) {
+			continue;
+		}
+
+		rv = setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &set, sizeof (set));
+		if (rv == -1) {
+			perror("setsockopt(SOL_SOCKET, SO_REUSEADDR)");
+			exit(1);
+		}
+
+		rv = bind(s, (struct sockaddr *)walk_ai->ai_addr,
+		    walk_ai->ai_addrlen);
+		if (rv == 0) {
+			af = walk_ai->ai_family;
+			break;
+		}
+
+		close(s);
+		s = -1;
+	} while ((walk_ai = walk_ai->ai_next) != NULL);
+
+	return (s);
+}
+
+ //run the server either in transport on server mode 
+ void
+ startServer(char * port)
+ {
+/*
+ * co se asi stane, kdyz uzivatel spusti program takhle:
+ *	./server 2121
+ *
+ * getaddrinfo() je pouzit spravne, ale pro splneni zadani
+ * je potreba zavolat dvakrat:
+ *	jednou pro IPv4 (AF_INET) INADDR_ANY 
+ *	podruhe pro IPv6 (AF_INET6) INADDR_ANY
+ *
+ * A vzhledem k tomu, ze server ma bezet na IPv4 a IPv6 je potreba dvou soketu.
+ * Ale to uz je docela brutalni zasah do designu celeho projektu. Myslim, ze by se
+ * to dalo zachranit pridanim command line optionu:
+ *	-4	pusti server tak, ze bude poslouchat na vsech IPv4 adresach
+ *		(INADDR_ANY)
+ *
+ *	-6	pusti server tak, ze bude poslouchat na vsech IPv6 adresach
+ *		(INADDR_ANY)
+ *
+ * pokud nebude specifikovana optiona -4/-6 server pouzije adresu, kterou
+ * getaddrinfo() vrati jako prvni. getaddrinfo() info typicky projde IPv4
+ * adresy, pak IPv6 (pokud hints nespecifikuji AF).
+ */
+ 	struct addrinfo hints;
+	struct addrinfo *addr_res;	
+
+ 	memset(&hints, 0, sizeof(struct addrinfo));
+ 	hints.ai_flags = AI_PASSIVE;
+	hints.ai_socktype = SOCK_STREAM;
+/*
+ * af by mela byt globalni promenna nastavena v main podle pritomnosti -4/-6
+ */
+	hints.ai_family = af;
+ 	
+ 	if(getaddrinfo(transport ? adr : NULL, transport ? NULL : (port ? port : "ftp"), &hints, &addr_res))
+ 		err(1, "cant get addrinfo" );
+	int socketDescriptor = initSock(addr_res);
+ 	freeaddrinfo(addr_res);
+
+	if (socketDescriptor < 0) {
+		err(1, "could not create listen socket");
+	}
+ 	//((struct sockaddr_in6*)addr_res->ai_addr)
+ 	if(listen(socketDescriptor , SOMAXCONN) == -1)
+ 		err(1, "unable start listening socket");
+
 	if(transport)
 	{
 		report_port(socketDescriptor);
@@ -226,9 +332,24 @@ startServer(char * port)
 	close(socketDescriptor);
 }
 
+static void
+usage(void)
+{
+	fprintf(stderr, "usage: server.out [-46p]\n"
+	    "\t-4\tforces to use IPv4 only\n"
+	    "\t-6\tforces to use IPv6 only\n"
+	    "\t-p\tselects port number to listen to\n"
+	    "If neither option is specified program uses defaults:\n"
+	    "\tAF_UNSPEC port 21");
+	exit(1);	
+}
+
 int
 main(int argc, char* argv[])
 {
+	int	opt;
+	char	*port = "ftp";
+
 	cur_file = basename(argv[0]);
 	transport = !strcmp(cur_file, "transport.out");
 	if(transport)
@@ -246,19 +367,28 @@ main(int argc, char* argv[])
 			startServer(NULL);
 		}
 	}
-	else
-	{
-		if(argc > 2 || !strcmp(argv[0], "server.out"))
-		{
-			dprintf(2, "usage: server.out [<listening_port>]\n");
-			exit(1);
-		}
-		else if( argc == 2)
-			startServer(argv[1]);
-		else
-			startServer(NULL);
-	}
+ 	else
+ 	{
+		while ((opt = getopt(argc, argv, "46p:")) != -1) {
+			switch (opt) {
+			case '4':
+				af = AF_INET;
+				break;
+			case '6':
+				af = AF_INET6;
+				break;
+			case 'p':
+				port = optarg;
+				break;
+			default:
+				usage();
+			}
+ 		}
+		startServer(port);
+ 	}
 
 	return (0);
 }
+
+
 
